@@ -5,10 +5,14 @@
   "private": true,
   "dependencies": {
     "bootstrap": "^4.3.1",
+    "classnames": "^2.2.6",
     "electron": "^6.0.10",
     "idb": "^4.0.4",
-    "react": "^16.10.1",
+    "prop-types": "^15.7.2",
+    "react": "^16.10.2",
+    "react-bootstrap": "^1.0.0-beta.14",
     "react-dom": "^16.10.1",
+    "react-jss": "^10.0.0",
     "react-scripts": "3.1.2",
     "winston": "^3.2.1",
     "zxcvbn": "^4.4.2"
@@ -18,7 +22,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "watch": "node ./watch.js"
+    "watch": "node ./watch-script.js"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -42,6 +46,11 @@
     "@babel/plugin-transform-async-to-generator": "^7.5.0",
     "@babel/preset-env": "^7.6.2",
     "@babel/preset-react": "^7.0.0",
+    "@fortawesome/fontawesome-svg-core": "^1.2.25",
+    "@fortawesome/free-regular-svg-icons": "^5.11.2",
+    "@fortawesome/free-solid-svg-icons": "^5.11.2",
+    "@fortawesome/react-fontawesome": "^0.1.7",
+    "color": "^3.1.2",
     "devtron": "^1.4.0",
     "electron-reload": "^1.5.0",
     "eslint": "^6.5.1",
