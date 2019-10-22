@@ -23,5 +23,8 @@ module.exports = {
     'max-len': ['warn', { code: 140 }],
     'no-unused-expressions': ['warn', { allowTernary: true }],
     'no-console': ['error', { allow: ['info', 'error'] }],
+    'import/no-extraneous-dependencies': ['error', { packageDir: './' }],
+    'react/jsx-filename-extension': ['error', { extensions: ['.js', '.jsx'] }],
+    'react/require-default-props': 'off',
   },
 };

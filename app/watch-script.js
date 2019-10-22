@@ -1,6 +1,6 @@
 'use strict';
 
-process.env.NODE_ENV = 'development'; // eslint-disable-line no-process-env
+process.env.NODE_ENV = 'development';
 
 /* eslint-disable import/no-extraneous-dependencies */
 const fs = require('fs-extra');
@@ -11,33 +11,41 @@ const { spawn } = require('child_process');
 const webpackConfig = require('react-scripts/config/webpack.config.js');
 const paths = require('react-scripts/config/paths');
 
-function configure(config) {
-  const { entry, plugins } = config;
+function log(msg) {
+  console.info(msg);
+}
 
-  /* eslint-disable no-param-reassign */
-  config.entry = entry.filter(fileName => !fileName.match(/webpackHotDevClient/));
-  config.plugins = plugins.filter(plugin => !(plugin instanceof webpack.HotModuleReplacementPlugin));
+function getConfiguration(defaultConfig) {
+  const { entry, plugins } = defaultConfig;
+  const { ...retVal } = defaultConfig;
 
-  config.output.path = paths.appBuild;
-  config.output.publicPath = '';
-  config.output.filename = 'js/bundle.js';
-  config.output.chunkFilename = 'js/[name].chunk.js';
+  retVal.entry = entry.filter(fileName => !fileName.match(/webpackHotDevClient/));
+  retVal.plugins = plugins.filter(plugin => !(plugin instanceof webpack.HotModuleReplacementPlugin));
+
+  retVal.output.path = paths.appBuild;
+  retVal.output.publicPath = '';
+  retVal.output.filename = 'js/bundle.js';
+  retVal.output.chunkFilename = 'js/[name].chunk.js';
 
   const oneOfRule = 2;
   const images = 0;
   const assets = 7;
 
-  config.module.rules[oneOfRule].oneOf[images].options.name = 'media/[name].[hash:8].[ext]';
-  config.module.rules[oneOfRule].oneOf[assets].options.name = 'media/[name].[hash:8].[ext]';
+  retVal.module.rules[oneOfRule].oneOf[images].options.name = 'media/[name].[hash:8].[ext]';
+  retVal.module.rules[oneOfRule].oneOf[assets].options.name = 'media/[name].[hash:8].[ext]';
 
-  /* eslint-enable no-param-reassign */
+  return retVal;
 }
 
 function cleanupTargetFolder() {
+  log('cleaning target folder');
+
   return fs.emptyDir(paths.appBuild);
 }
 
 function webpackWatch(config) {
+  log('starting webpackCompiler watch');
+
   return new Promise((resolve, reject) => {
     const webpackCompiler = webpack(config);
 
@@ -52,19 +60,12 @@ function webpackWatch(config) {
 }
 
 function copyPublicFolder() {
+  log('copying output files to public folder');
+
   return fs.copy(paths.appPublic, paths.appBuild, {
     dereference: true,
     filter: file => file !== paths.appHtml,
   });
-}
-
-function watchApp() {
-  const config = webpackConfig('development');
-  configure(config);
-
-  return cleanupTargetFolder()
-    .then(() => webpackWatch(config))
-    .then(() => copyPublicFolder());
 }
 
 function runProcess(processPath, args) {
@@ -90,30 +91,56 @@ function runProcess(processPath, args) {
   });
 }
 
-function buildElectron() {
+async function buildElectron() {
+  log('building electron');
+
   const babelCli = path.join(__dirname, './node_modules/.bin/babel.cmd');
   const babelArg = ['./src/electron/app.js', '-o ./build/app.js', '--source-map', '--presets=@babel/env'];
 
-  return runProcess(babelCli, babelArg).then(() => fs.copyFile('./src/package.json', './build/package.json'), err => console.error(err));
+  try {
+    await runProcess(babelCli, babelArg);
+    return await fs.copyFile('./src/package.json', './build/package.json');
+  } catch (err) {
+    return console.error(err);
+  }
 }
 
-function runApp() {
+async function runApp() {
+  log('running application');
+
   const electron = path.join(__dirname, './node_modules/.bin/electron.cmd');
   const args = ['./build', '--debug'];
 
-  runProcess(electron, args);
+  await runProcess(electron, args);
 }
 
-console.info('Compiling application');
-watchApp()
-  .then(() => {
-    console.info('Building Electron');
+async function watchApp() {
+  const defaultConfig = webpackConfig('development');
+  const config = getConfiguration(defaultConfig);
 
-    return buildElectron();
-  })
-  .then(() => {
-    console.info('Running application');
+  await cleanupTargetFolder();
+  await webpackWatch(config);
+  await copyPublicFolder();
+  await buildElectron();
+  await runApp();
+}
 
-    return runApp();
-  })
-  .catch(err => console.error(err));
+try {
+  watchApp();
+} catch (error) {
+  console.error(error);
+}
+
+// console.info('Compiling application');
+// watchApp()
+//   .then(() => {
+//     console.info('Building Electron');
+
+//     return buildElectron();
+//   })
+//   .then(() => {
+//     console.info('Running application');
+
+//     return runApp();
+//   })
+//   .catch(err => console.error(err));
