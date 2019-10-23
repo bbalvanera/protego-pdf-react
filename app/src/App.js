@@ -2,8 +2,8 @@ import React from 'react';
 import './App.scss';
 
 class App extends React.Component {
-  constructor(props) {
-    super(props);
+  constructor() {
+    super({});
 
     this.disableDragDrop();
   }
@@ -14,7 +14,7 @@ class App extends React.Component {
 
   disableDragDrop = () => {
     if (window) {
-      window.onload = event => {
+      window.onload = () => {
         document.addEventListener('dragover', e => e.preventDefault());
         document.addEventListener('drop', e => e.preventDefault());
       };
